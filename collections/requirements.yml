@@ -2,7 +2,7 @@ collections:
 #  - community.general
    - name: kubernetes.core
      version: 6.2.0
-     source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
+     source: https://hub-aap.apps.ocp4.example.com/api/galaxy/content/rh-certified
 
 
 #   - name: redhat.openshift
