@@ -1,6 +1,6 @@
 collections:
 #  - community.general
-#  - redhat.openshift
+   - name: redhat.openshift
    - name: ovirt.ovirt
      version: 3.2.0
      source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
