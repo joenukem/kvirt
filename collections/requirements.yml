@@ -1,8 +1,13 @@
 collections:
 #  - community.general
-   - name: redhat.openshift
-     version: 5.0.0 
+   - name: kubernetes.core
+     version: 6.2.0
      source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
+
+
+#   - name: redhat.openshift
+#     version: 5.0.0 
+#     source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
 
 
    - name: ovirt.ovirt
