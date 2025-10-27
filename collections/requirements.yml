@@ -5,9 +5,9 @@ collections:
      source: https://hub-aap.apps.ocp4.example.com/api/galaxy/content/rh-certified
 
 
-#   - name: redhat.openshift
-#     version: 5.0.0 
-#     source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
+   - name: redhat.openshift
+     version: 5.0.0 
+     source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
 
 
    - name: ovirt.ovirt
