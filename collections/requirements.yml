@@ -1,5 +1,5 @@
 collections:
 #  - community.general
 #  - redhat.openshift
-   - name: redhat.openshift
+   - name: ovirt.ovirt
      source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
