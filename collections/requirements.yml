@@ -1,0 +1,5 @@
+collections:
+#  - community.general
+#  - redhat.openshift
+   - name: redhat.openshift
+     source: https://hub-aap.apps.ocp4.example.com/api/galaxy/
