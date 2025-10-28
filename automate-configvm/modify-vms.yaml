@@ -1,0 +1,33 @@
+---
+# Notes:
+# - The VM instance will be changed from 'u1.xlarge' to 'u1.small'
+# - The VM template will be changed from 2 cores, 2 sockets, 2 threads
+#   and 16GB of RAM to 1 core, 1 socket, 1 thread and 2GB of RAM
+#
+# - You must provide the following variables for this playbook to work:
+#     - target_ns
+#     - vm_instance
+#     - vm_template
+#
+
+# FIXME: Uncomment the 'vars' section on each task
+
+- name: Modify VM instance
+  ansible.builtin.import_playbook: ./modify-vm-instance.yaml
+  vars:
+    # target_ns: "{{ target_ns }}"
+    # vm_instance: "{{ vm_instance }}"
+    instance_type: u1.small
+
+- name: Modify VM template
+  ansible.builtin.import_playbook: ./modify-vm-template.yaml
+  vars:
+    # target_ns: "{{ target_ns }}"
+    # vm_template: "{{ vm_template }}"
+    vm_parameters:
+      cpu:
+        cores: 1
+        sockets: 1
+        threads: 1
+      memory:
+        guest: "2Gi"

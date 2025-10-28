@@ -1,0 +1,155 @@
+---
+# modify-vm-template.yaml
+#
+# This playbook modifies the CPU and memory resources of the VM that was created by using a template.
+#
+# The playbook performs the following tasks:
+#
+# - Print the initial VM status, the CPU and memory parameters.
+# - Stop the virtual machine.
+# - Modify the virtual machine parameters.
+# - Start the virtual machine.
+# - Print the final VM status, the CPU and memory parameters.
+#
+# This playbook uses the 'redhat.openshift_virtualization.kubevirt_vm' module to set the CPU and memory parameters.
+# The CPU parameter includes `cores`, `sockets`, and `threads`.
+# The memory parameter specifies the amount of memory to configure.
+#
+# Refer to the documentation for more information:
+#
+# https://console.redhat.com/ansible/automation-hub/repo/published/redhat/openshift_virtualization/content/module/kubevirt_vm/?version=1.2.3
+
+- name: Modify VM Template
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    # NOTE: The following variables should be provided to this playbook
+    # target_ns: automate-configvm
+    # vm_template: rhel9-template
+    # vm_parameters:
+    #   cpu:
+    #     cores: 1
+    #     sockets: 1
+    #     threads: 1
+    #   memory:
+    #     guest: "2Gi"
+
+    wait_sleep: 10
+    wait_timeout: 60
+    retries_num: 30
+    delay_seconds: 10
+
+  tasks:
+
+    - name: VM info
+      block:
+
+        - name: "Get VirtualMachine info: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm_info:
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+          register: vm_template_info
+
+        - name: "Print VM info: {{ vm_template }}"
+          ansible.builtin.debug:
+            var: vm_info
+          vars:
+            vm_info:
+              cpu: "{{ vm_template_info.resources[0]['spec']['template']['spec']['domain']['cpu'] }}"
+              memory: "{{ vm_template_info.resources[0]['spec']['template']['spec']['domain']['memory'] }}"
+          when:
+            - vm_template_info.resources is defined
+            - vm_template_info.resources | length > 0
+            - vm_template_info.resources[0]['spec'] is defined
+            - vm_template_info.resources[0]['spec']['template'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec']['domain'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec']['domain']['cpu'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec']['domain']['memory'] is defined
+
+    - name: VM stop
+      block:
+
+        - name: "Stop VirtualMachine: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm:
+            state: present
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+            running: false
+
+        - name: "Wait until the VirtualMachine is stopped: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm_info:
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+            wait: false
+          register: vm_template_info
+          until:
+            - vm_template_info.resources is defined
+            - vm_template_info.resources | length > 0
+            - vm_template_info.resources[0]['status']['ready'] is not defined
+            - vm_template_info.resources[0]['status']['printableStatus'] is defined
+            - vm_template_info.resources[0]['status']['printableStatus'] == 'Stopped'
+            - vm_template_info.resources[0]['status']['runStrategy'] is defined
+            - vm_template_info.resources[0]['status']['runStrategy'] == 'Halted'
+          retries: "{{ retries_num }}"
+          delay: "{{ delay_seconds }}"
+
+    - name: VM modify
+      block:
+
+        # FIXME: Uncomment the parameters to modify the VM CPU and memory attributes
+        - name: "Modify VirtualMachine: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm:
+            state: present
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+            # spec:
+            #   domain:
+            #     cpu: "{{ vm_parameters.cpu }}"
+            #     memory: "{{ vm_parameters.memory }}"
+
+    - name: VM start
+      block:
+
+        - name: "Start VirtualMachine again: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm:
+            state: present
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+            running: true
+          when:
+            - vm_template_info.resources | length > 0
+
+        - name: "Wait until the VirtualMachine is running again: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm_info:
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+            # running: true
+            wait: true
+
+    - name: VM info
+      block:
+
+        - name: "Get VirtualMachine info: {{ vm_template }}"
+          redhat.openshift_virtualization.kubevirt_vm_info:
+            name: "{{ vm_template }}"
+            namespace: "{{ target_ns }}"
+          register: vm_template_info
+
+        - name: "Print VM info: {{ vm_template }}"
+          ansible.builtin.debug:
+            var: vm_info
+          vars:
+            vm_info:
+              cpu: "{{ vm_template_info.resources[0]['spec']['template']['spec']['domain']['cpu'] }}"
+              memory: "{{ vm_template_info.resources[0]['spec']['template']['spec']['domain']['memory'] }}"
+          when:
+            - vm_template_info.resources is defined
+            - vm_template_info.resources | length > 0
+            - vm_template_info.resources[0]['spec'] is defined
+            - vm_template_info.resources[0]['spec']['template'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec']['domain'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec']['domain']['cpu'] is defined
+            - vm_template_info.resources[0]['spec']['template']['spec']['domain']['memory'] is defined

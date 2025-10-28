@@ -1,0 +1,59 @@
+---
+- name: Create RHEL virtual machines
+  loop: "{{ vm_settings }}"
+  redhat.openshift_virtualization.kubevirt_vm:
+    state: present
+    name: "{{ item.vmname }}"
+    namespace: "{{ target_ns }}"
+    instancetype:
+      name: "{{ item.itype }}"
+    preference:
+      name: rhel.9
+    data_volume_templates:
+      - metadata:
+          name: "{{ item.vmname }}-volume"
+          namespace: "{{ target_ns }}"
+        spec:
+          sourceRef:
+            kind: DataSource
+            name: rhel9
+            namespace: openshift-virtualization-os-images
+          storage:
+            resources: {}
+    spec:
+      domain:
+        devices:
+          interfaces:
+            - name: default
+              masquerade: {}
+            - name: bridge-network
+              bridge: {}
+      networks:
+        - name: default
+          pod: {}
+        - name: bridge-network
+          multus:
+            networkName: default/vm-private-net
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: "{{ item.vmname }}-volume"
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              user: cloud-user
+              password: "CHANGEME"
+              chpasswd:
+                expire: false
+              runcmd:
+              - [ setsebool, -P, virt_qemu_ga_manage_ssh, on ]
+      accessCredentials:
+        - sshPublicKey:
+            propagationMethod:
+              qemuGuestAgent:
+                users:
+                  - cloud-user
+            source:
+              secret:
+                secretName: labkey
